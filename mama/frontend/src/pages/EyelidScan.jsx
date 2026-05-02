@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Camera, ScanFace, Activity, CheckCircle, AlertTriangle, Upload } from 'lucide-react';
 import SaveReportButton from '../components/SaveReportButton';
 import { useReport } from '../context/ReportContext';
+import API_URL from '../config/api';
 
 const EyelidScan = () => {
   const [scanning, setScanning] = useState(false);
@@ -35,7 +36,7 @@ const EyelidScan = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('http://localhost:5000/api/eyelid/scan', {
+      const response = await fetch(`${API_URL}/api/eyelid/scan`, {
         method: 'POST',
         body: formData,
       });

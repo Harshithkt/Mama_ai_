@@ -3,6 +3,7 @@ import { Send, Bot, User, AlertTriangle, ShieldCheck, Activity, Mic, MicOff, Vol
 import ReactMarkdown from 'react-markdown';
 import SaveReportButton from '../components/SaveReportButton';
 import { useReport } from '../context/ReportContext';
+import API_URL from '../config/api';
 
 const SUPPORTED_LANGUAGES = {
   'en': 'English',
@@ -93,7 +94,7 @@ const SymptomChecker = () => {
       }).then(r => r.json()).catch(() => null);
       
       // Fallback to Google Translate API via backend
-      const backendResponse = await fetch('http://localhost:5000/api/translate', {
+      const backendResponse = await fetch(`${API_URL}/api/translate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +145,7 @@ const SymptomChecker = () => {
     setIsTyping(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/symptoms/chat', {
+      const response = await fetch(`${API_URL}/api/symptoms/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

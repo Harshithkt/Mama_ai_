@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { collection, getDocs, orderBy, query, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import API_URL from '../config/api';
 
 const Reports = () => {
   const { user, userProfile } = useAuth();
@@ -104,7 +105,7 @@ const Reports = () => {
         kicks: kickSnap.empty ? null : kickSnap.docs[0].data(),
         symptoms: symptomSnap.empty ? [] : (symptomSnap.docs[0].data().messages ?? []),
       };
-      const res = await fetch('http://localhost:5000/api/report/generate', {
+      const res = await fetch(`${API_URL}/api/report/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(reportPayload),
@@ -139,7 +140,7 @@ const Reports = () => {
     setSendStatus('');
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/report/send-to-asha', {
+      const res = await fetch(`${API_URL}/api/report/send-to-asha`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

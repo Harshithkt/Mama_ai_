@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Upload, Utensils, Droplet, Flame, Leaf, CheckCircle2, AlertCircle, TrendingDown, Heart, Brain, Zap } from 'lucide-react';
 import SaveReportButton from '../components/SaveReportButton';
 import { useReport } from '../context/ReportContext';
+import API_URL from '../config/api';
 
 const NUTRIENT_CATEGORIES = {
   'bone_development': {
@@ -78,7 +79,7 @@ const MealScanner = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await fetch('http://localhost:5000/api/meals/analyze', {
+      const response = await fetch(`${API_URL}/api/meals/analyze`, {
         method: 'POST',
         body: formData,
       });
