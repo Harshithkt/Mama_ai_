@@ -1,0 +1,10 @@
+       locations:
+remote:          - commit: 6ddbd75df9b22045bcddeab361309717d88851fd
+remote:            path: backend/.env:6
+remote:          - commit: 5929e37974336c3342e7b859e85b07eab52341d5
+remote:            path: frontend/.env:2
+remote:          - commit: 6ddbd75df9b22045bcddeab361309717d88851fd
+remote:            path: frontend/dist/assets/index-BkNeRuJq.js:3683
+remote:          - commit: 6ddbd75df9b22045bcddeab361309717d88851fd
+remote:            path: frontend/src/components/FloatingChatbot.jsx:7
+remote:     

@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+
+# Environment variables - NEVER commit these
+.env
+.env.local
+.env.*.local
+mama/backend/.env
+mama/frontend/.env
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Models (large files)
+mama/backend/models/
+
+mama/frontend/src/firebase.js
+
+# Sensitive files
+serviceAccountKey.json
+backend/.env
+frontend/dist/
+
+backend/.env
+frontend/.env
+frontend/dist/assets/index-BkNeRuJq.js
+ frontend/src/components/FloatingChatbot.jsx
