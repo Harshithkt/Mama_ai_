@@ -81,7 +81,7 @@ const KickCounter = () => {
                 />
                 <Bar dataKey="kicks" radius={[6, 6, 0, 0]}>
                   {data.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index === data.length - 1 ? '#FF4FA3' : '#9D4EDD'} />
+                    <Cell key={`cell-${index}`} fill={index === data.length - 1 ? '#D97757' : '#F3AE8C'} />
                   ))}
                 </Bar>
               </BarChart>

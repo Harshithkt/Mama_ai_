@@ -8,28 +8,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Light mode (default) — warm cream
-        background:      '#FFF8F5',
-        card:            '#FFF0EB',
-        cardBorder:      '#F5D9D0',
-        textPrimary:     '#1C0F0A',
-        textSecondary:   '#7C5C54',
+        // Light mode (default) — Claude warm cream/terracotta
+        background:      '#FAF9F5',
+        card:            '#F5F2EA',
+        cardBorder:      '#E6DFD2',
+        textPrimary:     '#2F2F2F',
+        textSecondary:   '#5A5A5A',
 
-        // Shared accents
-        accentPink:      '#F43F7F',
-        secondaryPurple: '#C084FC',
-        cyanAccent:      '#06B6D4',
-        successGreen:    '#16A34A',
-        warningOrange:   '#EA580C',
-        dangerRed:       '#DC2626',
-        borderGlow:      '#F43F7F',
+        // Shared accents (mapped to Claude palette)
+        accentPink:      '#D97757', // brand-500
+        secondaryPurple: '#F3AE8C', // brand-300
+        cyanAccent:      '#EA8D68', // brand-400
+        successGreen:    '#2E8B57', // success
+        warningOrange:   '#D97706', // warning
+        dangerRed:       '#DC2626', // error
+        borderGlow:      '#D97757',
 
         // Dark mode overrides via CSS vars (see global.css)
-        'dark-bg':       '#0D0A1A',
-        'dark-card':     '#1A1528',
+        'dark-bg':       '#1C1B18',
+        'dark-card':     '#262420',
       },
       fontFamily: {
-        sans: ['Sora', 'Inter', 'sans-serif'],
+        sans: ['Inter', 'Sora', 'sans-serif'],
       },
       boxShadow: {
         'warm-sm':  '0 2px 8px rgba(244,63,127,0.08)',

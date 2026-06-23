@@ -86,7 +86,7 @@ const EyelidScan = () => {
             {scanning ? (
               <>
                 <div className="absolute inset-0 bg-cyanAccent/10 pointer-events-none"></div>
-                <div className="absolute top-0 left-0 w-full h-1 bg-cyanAccent shadow-[0_0_15px_#00D9FF] animate-[scan_2s_ease-in-out_infinite]"></div>
+                <div className="absolute top-0 left-0 w-full h-1 bg-cyanAccent shadow-[0_0_15px_#EA8D68] animate-[scan_2s_ease-in-out_infinite]"></div>
                 <ScanFace className="w-24 h-24 text-cyanAccent animate-pulse mb-4" />
                 <p className="text-cyanAccent font-medium text-lg">Analyzing pallor level...</p>
               </>

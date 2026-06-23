@@ -20,6 +20,12 @@ const NOTES_PROMPTS = [
   'Feeling energetic',
 ];
 
+const parseDate = (savedAt) => {
+  if (!savedAt) return new Date();
+  if (typeof savedAt.toDate === 'function') return savedAt.toDate();
+  return new Date(savedAt);
+};
+
 const MoodCheckin = () => {
   const { user } = useAuth();
   const [selected, setSelected] = useState(null);
@@ -32,37 +38,71 @@ const MoodCheckin = () => {
   const moodRef = () => collection(db, 'users', user.uid, 'moods');
 
   useEffect(() => {
-    if (!user) return;
     const load = async () => {
-      const snap = await getDocs(query(moodRef(), orderBy('savedAt', 'desc'), limit(14)));
-      const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // 1. Load from localStorage
+      let entries = [];
+      try {
+        entries = JSON.parse(localStorage.getItem('mama_moods') || '[]');
+        entries.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+      } catch (e) {}
+
+      // 2. Try loading from Firestore
+      try {
+        if (user && db) {
+          const snap = await getDocs(query(moodRef(), orderBy('savedAt', 'desc'), limit(14)));
+          const firestoreEntries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+          if (firestoreEntries.length > 0) {
+            entries = firestoreEntries;
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch moods from Firestore, using local storage:", err);
+      }
+
       setHistory(entries);
 
       // Check if already logged today
       const today = new Date().toDateString();
-      const alreadyLogged = entries.some(e => e.savedAt?.toDate && new Date(e.savedAt.toDate()).toDateString() === today);
+      const alreadyLogged = entries.some(e => parseDate(e.savedAt).toDateString() === today);
       setTodayLogged(alreadyLogged);
     };
     load();
   }, [user, saved]);
 
   const handleSave = async () => {
-    if (!selected || !user) return;
+    if (!selected) return;
     setSaving(true);
+    const newEntry = {
+      mood: selected.value,
+      label: selected.label,
+      emoji: selected.emoji,
+      note,
+      savedAt: new Date().toISOString(),
+      day: new Date().toLocaleDateString('en-US', { weekday: 'short' }),
+    };
+
+    // 1. Save to local storage
     try {
-      await addDoc(moodRef(), {
-        mood: selected.value,
-        label: selected.label,
-        emoji: selected.emoji,
-        note,
-        savedAt: serverTimestamp(),
-        day: new Date().toLocaleDateString('en-US', { weekday: 'short' }),
-      });
+      const existing = JSON.parse(localStorage.getItem('mama_moods') || '[]');
+      existing.push(newEntry);
+      localStorage.setItem('mama_moods', JSON.stringify(existing));
+    } catch (e) {}
+
+    // 2. Try Firestore
+    try {
+      if (user && db) {
+        await addDoc(moodRef(), {
+          ...newEntry,
+          savedAt: serverTimestamp(), // use server timestamp for firestore
+        });
+      }
+    } catch (err) {
+      console.warn("Could not save mood to Firestore, using local storage:", err);
+    } finally {
       setSaved(true);
       setSelected(null);
       setNote('');
       setTimeout(() => setSaved(false), 3000);
-    } finally {
       setSaving(false);
     }
   };
@@ -73,9 +113,9 @@ const MoodCheckin = () => {
     d.setDate(d.getDate() - (6 - i));
     const dayStr = d.toLocaleDateString('en-US', { weekday: 'short' });
     const entry = history.find(e => {
-      if (!e.savedAt?.toDate) return false;
-      return new Date(e.savedAt.toDate()).toLocaleDateString('en-US', { weekday: 'short' }) === dayStr
-        && new Date(e.savedAt.toDate()).toDateString() === d.toDateString();
+      const parsed = parseDate(e.savedAt);
+      return parsed.toLocaleDateString('en-US', { weekday: 'short' }) === dayStr
+        && parsed.toDateString() === d.toDateString();
     });
     return { day: dayStr, mood: entry?.mood ?? 0, emoji: entry?.emoji ?? '—', color: entry ? MOODS.find(m => m.value === entry.mood)?.color : '#334155' };
   });

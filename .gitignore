@@ -40,3 +40,6 @@ backend/.env
 frontend/.env
 frontend/dist/assets/index-BkNeRuJq.js
  frontend/src/components/FloatingChatbot.jsx
+
+
+ /Users/harshithkt/Desktop/Mama_ai/mama/backend/serviceAccountKey.json

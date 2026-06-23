@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+import API_URL from '../config/api';
 
 const Emergency = () => {
   const { userProfile, user } = useAuth();
@@ -44,9 +45,8 @@ const Emergency = () => {
 
   const handleSOS = async () => {
     setSOSLoading(true);
-    
     try {
-      const response = await fetch('http://localhost:5000/api/emergency/alert', {
+      const response = await fetch(`${API_URL}/api/emergency/alert`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

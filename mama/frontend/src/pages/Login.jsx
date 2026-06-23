@@ -54,9 +54,9 @@ const Login = () => {
 
       {/* Soft background blobs */}
       <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none opacity-30"
-        style={{ background: 'radial-gradient(circle, #F43F7F33, transparent)' }} />
+        style={{ background: 'radial-gradient(circle, #D9775722, transparent)' }} />
       <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full blur-3xl pointer-events-none opacity-20"
-        style={{ background: 'radial-gradient(circle, #C084FC33, transparent)' }} />
+        style={{ background: 'radial-gradient(circle, #F3AE8C22, transparent)' }} />
 
       <div className="w-full max-w-md relative z-10">
         {/* Brand */}
@@ -75,7 +75,7 @@ const Login = () => {
                 <button key={tab.id} onClick={() => { setActiveTab(tab.id); setError(''); }}
                   className="flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5"
                   style={activeTab === tab.id
-                    ? { background: 'linear-gradient(135deg,#F43F7F,#C084FC)', color: '#fff', boxShadow: '0 4px 12px rgba(244,63,127,0.3)' }
+                    ? { background: 'linear-gradient(135deg,#D97757,#F3AE8C)', color: '#fff', boxShadow: '0 4px 12px rgba(217,119,87,0.3)' }
                     : { color: 'var(--text-2)' }}>
                   <tab.icon className="w-3.5 h-3.5" />
                   <span className="hidden sm:inline">{tab.label}</span>
@@ -89,7 +89,7 @@ const Login = () => {
             <div className="flex items-center gap-2 mb-6">
               {[1, 2].map(s => (
                 <div key={s} className="h-1.5 flex-1 rounded-full transition-all duration-300"
-                  style={{ background: step >= s ? 'linear-gradient(90deg,#F43F7F,#C084FC)' : 'var(--bg-3)' }} />
+                  style={{ background: step >= s ? 'linear-gradient(90deg,#D97757,#F3AE8C)' : 'var(--bg-3)' }} />
               ))}
               <span className="text-xs ml-1" style={{ color: 'var(--text-3)' }}>{step}/2</span>
             </div>

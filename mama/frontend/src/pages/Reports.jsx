@@ -24,20 +24,50 @@ const Reports = () => {
   ];
 
   useEffect(() => {
-    if (!user) return;
-    const base = (sub) => collection(db, 'users', user.uid, 'reports', sub, 'entries');
     const load = async () => {
-      const [eyelidSnap, mealSnap, kickSnap, symptomSnap] = await Promise.all([
-        getDocs(query(base('eyelid_scans'), orderBy('savedAt', 'desc'), limit(1))),
-        getDocs(base('meal_scans')),
-        getDocs(query(base('kick_sessions'), orderBy('savedAt', 'desc'), limit(1))),
-        getDocs(base('symptom_chats')),
-      ]);
+      // 1. Load from localStorage
+      const getLocalData = (sub) => {
+        try {
+          const list = JSON.parse(localStorage.getItem(`mama_report_${sub}`) || '[]');
+          list.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+          return list;
+        } catch (e) { return []; }
+      };
+
+      const localEyelid = getLocalData('eyelid_scans');
+      const localMeals = getLocalData('meal_scans');
+      const localKicks = getLocalData('kick_sessions');
+      const localSymptoms = getLocalData('symptom_chats');
+
+      let eyelidData = localEyelid[0] || null;
+      let mealsCount = localMeals.length;
+      let kicksData = localKicks[0] || null;
+      let symptomsCount = localSymptoms.length;
+
+      // 2. Try loading from Firestore
+      try {
+        if (user && db) {
+          const base = (sub) => collection(db, 'users', user.uid, 'reports', sub, 'entries');
+          const [eyelidSnap, mealSnap, kickSnap, symptomSnap] = await Promise.all([
+            getDocs(query(base('eyelid_scans'), orderBy('savedAt', 'desc'), limit(1))),
+            getDocs(base('meal_scans')),
+            getDocs(query(base('kick_sessions'), orderBy('savedAt', 'desc'), limit(1))),
+            getDocs(base('symptom_chats')),
+          ]);
+          if (!eyelidSnap.empty) eyelidData = eyelidSnap.docs[0].data();
+          if (mealSnap.size > 0) mealsCount = Math.max(mealsCount, mealSnap.size);
+          if (!kickSnap.empty) kicksData = kickSnap.docs[0].data();
+          if (symptomSnap.size > 0) symptomsCount = Math.max(symptomsCount, symptomSnap.size);
+        }
+      } catch (err) {
+        console.warn("Could not fetch reports from Firestore, using local storage:", err);
+      }
+
       setSummary({
-        eyelid: eyelidSnap.empty ? null : eyelidSnap.docs[0].data(),
-        meals: mealSnap.size,
-        kicks: kickSnap.empty ? null : kickSnap.docs[0].data(),
-        symptoms: symptomSnap.size,
+        eyelid: eyelidData,
+        meals: mealsCount,
+        kicks: kicksData,
+        symptoms: symptomsCount,
       });
     };
     load();
@@ -47,7 +77,7 @@ const Reports = () => {
     const htmlContent = text
       .replace(/^### (.+)$/gm, '<h3>$1</h3>')
       .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm, '<h1 style="color:#9D4EDD">$1</h1>')
+      .replace(/^# (.+)$/gm, '<h1 style="color:#D97757">$1</h1>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/^- (.+)$/gm, '<li>$1</li>')
@@ -62,8 +92,8 @@ const Reports = () => {
     <title>MamaAI Doctor Report</title>
     <style>
       body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;color:#1a1a2e;line-height:1.8;padding:0 20px}
-      h1{color:#9D4EDD;border-bottom:2px solid #FF4FA3;padding-bottom:10px;margin-top:0}
-      h2{color:#9D4EDD;margin-top:28px;margin-bottom:8px}
+      h1{color:#D97757;border-bottom:2px solid #F3AE8C;padding-bottom:10px;margin-top:0}
+      h2{color:#D97757;margin-top:28px;margin-bottom:8px}
       h3{color:#333;margin-top:20px;margin-bottom:6px}
       p{margin:8px 0;color:#333}
       ul{padding-left:20px;margin:8px 0}
@@ -86,25 +116,54 @@ const Reports = () => {
   };
 
   const handleGenerateReport = async () => {
-    if (!user) return;
     setGeneratingReport(true);
     setError('');
     setReportText('');
     setSendStatus('');
     try {
-      const base = (sub) => collection(db, 'users', user.uid, 'reports', sub, 'entries');
-      const [eyelidSnap, mealSnap, kickSnap, symptomSnap] = await Promise.all([
-        getDocs(query(base('eyelid_scans'), orderBy('savedAt', 'desc'), limit(1))),
-        getDocs(query(base('meal_scans'), orderBy('savedAt', 'desc'), limit(3))),
-        getDocs(query(base('kick_sessions'), orderBy('savedAt', 'desc'), limit(1))),
-        getDocs(query(base('symptom_chats'), orderBy('savedAt', 'desc'), limit(1))),
-      ]);
-      const reportPayload = {
-        eyelid: eyelidSnap.empty ? null : eyelidSnap.docs[0].data(),
-        meals: mealSnap.docs.map(d => d.data()),
-        kicks: kickSnap.empty ? null : kickSnap.docs[0].data(),
-        symptoms: symptomSnap.empty ? [] : (symptomSnap.docs[0].data().messages ?? []),
+      // 1. Get from localStorage
+      const getLocalData = (sub) => {
+        try {
+          return JSON.parse(localStorage.getItem(`mama_report_${sub}`) || '[]');
+        } catch (e) { return []; }
       };
+
+      const localEyelid = getLocalData('eyelid_scans').sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt));
+      const localMeals = getLocalData('meal_scans').sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt));
+      const localKicks = getLocalData('kick_sessions').sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt));
+      const localSymptoms = getLocalData('symptom_chats').sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt));
+
+      let eyelidData = localEyelid[0] || null;
+      let mealsData = localMeals.slice(0, 3);
+      let kicksData = localKicks[0] || null;
+      let symptomsData = localSymptoms[0]?.messages || [];
+
+      // 2. Try loading from Firestore
+      try {
+        if (user && db) {
+          const base = (sub) => collection(db, 'users', user.uid, 'reports', sub, 'entries');
+          const [eyelidSnap, mealSnap, kickSnap, symptomSnap] = await Promise.all([
+            getDocs(query(base('eyelid_scans'), orderBy('savedAt', 'desc'), limit(1))),
+            getDocs(query(base('meal_scans'), orderBy('savedAt', 'desc'), limit(3))),
+            getDocs(query(base('kick_sessions'), orderBy('savedAt', 'desc'), limit(1))),
+            getDocs(query(base('symptom_chats'), orderBy('savedAt', 'desc'), limit(1))),
+          ]);
+          if (!eyelidSnap.empty) eyelidData = eyelidSnap.docs[0].data();
+          if (!mealSnap.empty) mealsData = mealSnap.docs.map(d => d.data());
+          if (!kickSnap.empty) kicksData = kickSnap.docs[0].data();
+          if (!symptomSnap.empty) symptomsData = symptomSnap.docs[0].data().messages ?? [];
+        }
+      } catch (err) {
+        console.warn("Firestore fetch during report failed, using local storage:", err);
+      }
+
+      const reportPayload = {
+        eyelid: eyelidData,
+        meals: mealsData,
+        kicks: kicksData,
+        symptoms: symptomsData,
+      };
+
       const res = await fetch(`${API_URL}/api/report/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -113,8 +172,9 @@ const Reports = () => {
       const data = await res.json();
       if (data.success) setReportText(data.report);
       else setError(data.error || 'Failed to generate report');
-    } catch {
-      setError('Could not connect to server. Please ensure the backend is running.');
+    } catch (err) {
+      console.error("Report generation failed:", err);
+      setError(err.message || 'Could not connect to server. Please ensure the backend is running.');
     } finally {
       setGeneratingReport(false);
     }
@@ -291,14 +351,14 @@ const Reports = () => {
             <AreaChart data={hbData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorHb" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00D9FF" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#00D9FF" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#D97757" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#D97757" stopOpacity={0}/>
                 </linearGradient>
               </defs>
               <XAxis dataKey="week" stroke="#CBD5E1" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis stroke="#CBD5E1" fontSize={12} tickLine={false} axisLine={false} domain={[8, 14]} />
               <Tooltip contentStyle={{ backgroundColor: 'var(--bg-2)', border: '1px solid var(--border)', borderRadius: '12px', color: 'var(--text-1)' }} />
-              <Area type="monotone" dataKey="hb" stroke="#00D9FF" strokeWidth={3} fillOpacity={1} fill="url(#colorHb)" />
+              <Area type="monotone" dataKey="hb" stroke="#D97757" strokeWidth={3} fillOpacity={1} fill="url(#colorHb)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>

@@ -55,34 +55,70 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) return;
     const calcRisk = async () => {
-      const base = (sub) => collection(db, 'users', user.uid, 'reports', sub, 'entries');
-      const [eyelidSnap, kickSnap, symptomSnap, moodSnap] = await Promise.all([
-        getDocs(query(base('eyelid_scans'), orderBy('savedAt', 'desc'), limit(1))),
-        getDocs(query(base('kick_sessions'), orderBy('savedAt', 'desc'), limit(1))),
-        getDocs(query(base('symptom_chats'), orderBy('savedAt', 'desc'), limit(1))),
-        getDocs(query(collection(db, 'users', user.uid, 'moods'), orderBy('savedAt', 'desc'), limit(1))),
-      ]);
+      // 1. Load baseline from localStorage
+      const getLocalData = (sub) => {
+        try {
+          const list = JSON.parse(localStorage.getItem(`mama_report_${sub}`) || '[]');
+          list.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+          return list[0] || null;
+        } catch (e) {
+          return null;
+        }
+      };
+
+      const getLocalMood = () => {
+        try {
+          const list = JSON.parse(localStorage.getItem('mama_moods') || '[]');
+          list.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+          return list[0] || null;
+        } catch (e) {
+          return null;
+        }
+      };
+
+      let latestEyelid = getLocalData('eyelid_scans');
+      let latestKick = getLocalData('kick_sessions');
+      let latestSymptom = getLocalData('symptom_chats');
+      let latestMood = getLocalMood();
+
+      // 2. Try fetching from Firestore
+      try {
+        const base = (sub) => collection(db, 'users', user.uid, 'reports', sub, 'entries');
+        const [eyelidSnap, kickSnap, symptomSnap, moodSnap] = await Promise.all([
+          getDocs(query(base('eyelid_scans'), orderBy('savedAt', 'desc'), limit(1))),
+          getDocs(query(base('kick_sessions'), orderBy('savedAt', 'desc'), limit(1))),
+          getDocs(query(base('symptom_chats'), orderBy('savedAt', 'desc'), limit(1))),
+          getDocs(query(collection(db, 'users', user.uid, 'moods'), orderBy('savedAt', 'desc'), limit(1))),
+        ]);
+
+        if (!eyelidSnap.empty) latestEyelid = eyelidSnap.docs[0].data();
+        if (!kickSnap.empty) latestKick = kickSnap.docs[0].data();
+        if (!symptomSnap.empty) latestSymptom = symptomSnap.docs[0].data();
+        if (!moodSnap.empty) latestMood = moodSnap.docs[0].data();
+      } catch (err) {
+        console.warn("Could not calculate risk from Firestore, using local storage:", err);
+      }
 
       let score = 10; // baseline
       const factors = [];
 
       // Eyelid Hb
-      if (!eyelidSnap.empty) {
-        const hb = eyelidSnap.docs[0].data().hb ?? 11;
+      if (latestEyelid) {
+        const hb = latestEyelid.hb ?? 11;
         if (hb < 9) { score += 35; factors.push({ label: 'Severe anemia risk', color: 'text-dangerRed' }); }
         else if (hb < 11) { score += 20; factors.push({ label: 'Mild anemia detected', color: 'text-warningOrange' }); }
       }
 
       // Kicks
-      if (!kickSnap.empty) {
-        const kicks = kickSnap.docs[0].data().today ?? 10;
+      if (latestKick) {
+        const kicks = latestKick.today ?? 10;
         if (kicks < 6) { score += 25; factors.push({ label: 'Low fetal movement', color: 'text-dangerRed' }); }
         else if (kicks < 10) { score += 10; factors.push({ label: 'Below avg kicks', color: 'text-warningOrange' }); }
       }
 
       // Symptoms emergency flag
-      if (!symptomSnap.empty) {
-        const msgs = symptomSnap.docs[0].data().messages ?? [];
+      if (latestSymptom) {
+        const msgs = latestSymptom.messages ?? [];
         const hasEmergency = msgs.some(m => m.statusCard === 'emergency');
         const hasWarning = msgs.some(m => m.statusCard === 'warning');
         if (hasEmergency) { score += 30; factors.push({ label: 'Emergency symptom flagged', color: 'text-dangerRed' }); }
@@ -90,10 +126,10 @@ const Dashboard = () => {
       }
 
       // Mood
-      if (!moodSnap.empty) {
-        const mood = moodSnap.docs[0].data().mood ?? 3;
+      if (latestMood) {
+        const mood = latestMood.mood ?? 3;
         if (mood === 1) { score += 10; factors.push({ label: 'Low mood reported', color: 'text-warningOrange' }); }
-        setTodayMood(moodSnap.docs[0].data());
+        setTodayMood(latestMood);
       }
 
       if (factors.length === 0) factors.push({ label: 'All vitals look good', color: 'text-successGreen' });

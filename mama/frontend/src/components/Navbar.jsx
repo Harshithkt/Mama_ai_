@@ -136,7 +136,7 @@ const Navbar = () => {
             <p className="text-xs capitalize" style={{ color: 'var(--text-3)' }}>{userProfile?.language ?? userProfile?.role ?? 'mother'}</p>
           </div>
           <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-            style={{ background: 'linear-gradient(135deg, #F43F7F, #C084FC)' }}>
+            style={{ background: 'linear-gradient(135deg, #D97757, #F3AE8C)' }}>
             {userProfile?.name?.[0]?.toUpperCase() ?? <User className="w-4 h-4" />}
           </div>
         </div>

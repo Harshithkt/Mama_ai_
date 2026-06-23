@@ -11,42 +11,34 @@ import { auth, db } from '../firebase';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState({ uid: 'mock-user-123', email: 'mother@example.com' });
+  const [userProfile, setUserProfile] = useState({ name: 'Simulated Mother', role: 'mother', email: 'mother@example.com' });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
-        setUserProfile(snap.exists() ? snap.data() : null);
-      } else {
-        setUser(null);
-        setUserProfile(null);
-      }
-      setLoading(false);
-    });
-    return unsub;
+    setLoading(false);
   }, []);
 
   const login = async (email, password) => {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    const snap = await getDoc(doc(db, 'users', cred.user.uid));
-    const profile = snap.exists() ? snap.data() : null;
+    // Mock login: default to ASHA worker if email contains 'asha', otherwise mother
+    const role = email.includes('asha') ? 'asha' : 'mother';
+    const profile = { name: role === 'asha' ? 'ASHA Worker' : 'Simulated Mother', role: role, email: email };
+    setUser({ uid: 'mock-user-123', email: email });
     setUserProfile(profile);
     return profile;
   };
 
   const signup = async (email, password, name, role, extraProfile = {}) => {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
     const profile = { name, role, email, ...extraProfile, createdAt: new Date().toISOString() };
-    await setDoc(doc(db, 'users', cred.user.uid), profile);
+    setUser({ uid: 'mock-user-123', email: email });
     setUserProfile(profile);
     return profile;
   };
 
-  const logout = () => signOut(auth);
+  const logout = () => {
+    setUser(null);
+    setUserProfile(null);
+  };
 
   return (
     <AuthContext.Provider value={{ user, userProfile, loading, login, signup, logout }}>

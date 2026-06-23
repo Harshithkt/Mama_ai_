@@ -9,9 +9,25 @@ export const ReportProvider = ({ children }) => {
   const { user } = useAuth();
 
   const saveToFirestore = async (subcollection, data) => {
-    if (!user) throw new Error('Not authenticated');
-    const ref = collection(db, 'users', user.uid, 'reports', subcollection, 'entries');
-    await addDoc(ref, { ...data, savedAt: serverTimestamp() });
+    // 1. Save to local storage as fallback
+    try {
+      const localKey = `mama_report_${subcollection}`;
+      const existing = JSON.parse(localStorage.getItem(localKey) || '[]');
+      existing.push({ ...data, savedAt: new Date().toISOString() });
+      localStorage.setItem(localKey, JSON.stringify(existing));
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+    }
+
+    // 2. Try Firestore but catch errors so they don't break the UI
+    try {
+      if (user && db) {
+        const ref = collection(db, 'users', user.uid, 'reports', subcollection, 'entries');
+        await addDoc(ref, { ...data, savedAt: serverTimestamp() });
+      }
+    } catch (err) {
+      console.warn(`Firestore save to ${subcollection} failed (falling back to local storage):`, err);
+    }
   };
 
   const saveEyelid = (data) => saveToFirestore('eyelid_scans', {
@@ -33,9 +49,7 @@ export const ReportProvider = ({ children }) => {
   });
 
   const saveMeal = async (data) => {
-    if (!user) throw new Error('Not authenticated');
-    
-    // Save to nested structure for backward compatibility
+    // Save to nested structure
     await saveToFirestore('meal_scans', {
       foods_detected: data.foods_detected ?? [],
       nutrients: data.nutrients ?? {},
@@ -45,18 +59,31 @@ export const ReportProvider = ({ children }) => {
       safety_notes: data.safety_notes ?? null,
     });
 
-    // Also save to top-level meals collection for easy chatbot access
-    const mealsRef = collection(db, 'meals');
-    await addDoc(mealsRef, {
-      userId: user.uid,
-      foods_detected: data.foods_detected ?? [],
-      nutrients: data.nutrients ?? {},
-      nutrient_gaps: data.nutrient_gaps ?? [],
-      recommendations: data.recommendations ?? [],
-      overall_assessment: data.overall_assessment ?? null,
-      safety_notes: data.safety_notes ?? null,
-      timestamp: serverTimestamp(),
-    });
+    // Save to top-level meals locally
+    try {
+      const existing = JSON.parse(localStorage.getItem('mama_meals') || '[]');
+      existing.push({ ...data, timestamp: new Date().toISOString() });
+      localStorage.setItem('mama_meals', JSON.stringify(existing));
+    } catch (e) {}
+
+    // Try Firestore
+    try {
+      if (user && db) {
+        const mealsRef = collection(db, 'meals');
+        await addDoc(mealsRef, {
+          userId: user.uid,
+          foods_detected: data.foods_detected ?? [],
+          nutrients: data.nutrients ?? {},
+          nutrient_gaps: data.nutrient_gaps ?? [],
+          recommendations: data.recommendations ?? [],
+          overall_assessment: data.overall_assessment ?? null,
+          safety_notes: data.safety_notes ?? null,
+          timestamp: serverTimestamp(),
+        });
+      }
+    } catch (err) {
+      console.warn('Firestore saveMeal failed:', err);
+    }
   };
 
   const saveKicks = (data) => saveToFirestore('kick_sessions', {

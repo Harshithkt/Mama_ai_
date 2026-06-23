@@ -13,7 +13,15 @@ from datetime import datetime
 load_dotenv()
 
 report_api = Blueprint('report_api', __name__)
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+client = None
+def get_groq_client():
+    global client
+    if client is None:
+        load_dotenv(override=True)
+        api_key = os.getenv('GROQ_API_KEY')
+        if api_key:
+            client = Groq(api_key=api_key)
+    return client
 MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 
@@ -63,7 +71,7 @@ def generate_report():
         )
 
     if not context_parts:
-        return jsonify({"success": False, "error": "No health data provided"}), 400
+        context_parts.append("No health data has been logged by the patient yet. Instruct the patient to log symptoms, meals, and fetal kicks in the application for clinical tracking.")
 
     health_summary = "\n".join(context_parts)
 
@@ -83,7 +91,11 @@ Generate a report with these sections:
 Keep it professional, clear, and under 400 words."""
 
     try:
-        response = client.chat.completions.create(
+        active_client = get_groq_client()
+        if not active_client:
+            return jsonify({"success": False, "error": "Groq API key is missing. Add GROQ_API_KEY to backend/.env and save."}), 503
+            
+        response = active_client.chat.completions.create(
             model=MODEL,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=600,

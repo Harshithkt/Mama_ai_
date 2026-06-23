@@ -7,8 +7,16 @@ load_dotenv()
 
 symptom_api = Blueprint('symptom_api', __name__)
 
-# Initialize Groq client
-client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+# Initialize Groq client helper to allow reloading without server restart
+client = None
+def get_groq_client():
+    global client
+    if client is None:
+        load_dotenv(override=True)
+        api_key = os.getenv('GROQ_API_KEY')
+        if api_key:
+            client = Groq(api_key=api_key)
+    return client
 
 # Available Groq models (as of April 2026)
 AVAILABLE_MODELS = [
@@ -60,11 +68,18 @@ def analyze_symptoms():
         messages.append({"role": "user", "content": user_message})
         
         # Get model from environment or use default
-        model_name = os.getenv('GROQ_MODEL', 'llama-3.3-70b-specdec')
+        model_name = os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile')
         
         try:
+            active_client = get_groq_client()
+            if not active_client:
+                return jsonify({
+                    "error": "Groq API key is missing. Add GROQ_API_KEY to backend/.env and save.",
+                    "success": False
+                }), 503
+                
             # Call Groq API
-            response = client.chat.completions.create(
+            response = active_client.chat.completions.create(
                 model=model_name,
                 messages=[
                     {"role": "system", "content": SYSTEM_PROMPT},
@@ -119,7 +134,7 @@ def analyze_symptoms():
 def health_check():
     """Health check endpoint"""
     api_key_exists = bool(os.getenv('GROQ_API_KEY'))
-    model_configured = os.getenv('GROQ_MODEL', 'llama-3.3-70b-specdec')
+    model_configured = os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile')
     return jsonify({
         "status": "healthy" if api_key_exists else "api_key_missing",
         "groq_configured": api_key_exists,

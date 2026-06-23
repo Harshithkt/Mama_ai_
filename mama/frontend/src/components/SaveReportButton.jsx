@@ -12,6 +12,7 @@ const SaveReportButton = ({ onSave, label = 'Save to Report' }) => {
       setTimeout(() => setStatus('idle'), 3000);
     } catch (err) {
       console.error('Save failed:', err);
+      alert('Save failed:\n' + (err.message || err));
       setStatus('error');
       setTimeout(() => setStatus('idle'), 3000);
     }

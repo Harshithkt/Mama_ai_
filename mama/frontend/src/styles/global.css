@@ -1,42 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
-
 /* ── CSS Variables ── */
 :root {
-  --bg:           #FFF8F5;
-  --bg-2:         #FFF0EB;
-  --bg-3:         #FAE8E0;
-  --border:       rgba(244, 63, 127, 0.18);
-  --border-soft:  rgba(244, 63, 127, 0.10);
-  --text-1:       #1C0F0A;
-  --text-2:       #6B4C44;
-  --text-3:       #A87060;
-  --pink:         #F43F7F;
-  --purple:       #C084FC;
-  --glass-bg:     rgba(255, 248, 245, 0.80);
-  --glass-border: rgba(244, 63, 127, 0.14);
-  --shadow:       0 2px 16px rgba(244, 63, 127, 0.08);
-  --shadow-lg:    0 6px 40px rgba(244, 63, 127, 0.13);
-  --glow:         0 0 20px rgba(244, 63, 127, 0.20);
+  --bg:           #FAF9F5;
+  --bg-2:         #F5F2EA;
+  --bg-3:         #EEE8DC;
+  --border:       #E6DFD2;
+  --border-soft:  #F0EBE2;
+  --text-1:       #2F2F2F;
+  --text-2:       #5A5A5A;
+  --text-3:       #8A8A8A;
+  --pink:         #D97757; /* brand-500 */
+  --purple:       #F3AE8C; /* brand-300 */
+  --glass-bg:     rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(217, 119, 87, 0.15);
+  --shadow:       0 2px 16px rgba(115, 54, 33, 0.04);
+  --shadow-lg:    0 8px 32px rgba(115, 54, 33, 0.08);
+  --glow:         0 0 20px rgba(217, 119, 87, 0.15);
 }
 
 .dark {
-  --bg:           #0D0A1A;
-  --bg-2:         #1A1528;
-  --bg-3:         #221D35;
-  --border:       rgba(196, 132, 252, 0.18);
-  --border-soft:  rgba(196, 132, 252, 0.08);
-  --text-1:       #F5F0FF;
-  --text-2:       #A89BC2;
-  --text-3:       #6B5F80;
-  --glass-bg:     rgba(26, 21, 40, 0.80);
-  --glass-border: rgba(196, 132, 252, 0.12);
-  --shadow:       0 2px 16px rgba(0, 0, 0, 0.40);
-  --shadow-lg:    0 6px 40px rgba(0, 0, 0, 0.55);
-  --glow:         0 0 20px rgba(244, 63, 127, 0.28);
+  --bg:           #1C1B18;
+  --bg-2:         #262420;
+  --bg-3:         #32302A;
+  --border:       rgba(217, 119, 87, 0.18);
+  --border-soft:  rgba(217, 119, 87, 0.10);
+  --text-1:       #F5EDE2;
+  --text-2:       #BEB5A8;
+  --text-3:       #8C8276;
+  --pink:         #EA8D68; /* brand-400 for better dark contrast */
+  --purple:       #F9CCB4; /* brand-200 */
+  --glass-bg:     rgba(38, 36, 32, 0.85);
+  --glass-border: rgba(217, 119, 87, 0.15);
+  --shadow:       0 2px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg:    0 8px 32px rgba(0, 0, 0, 0.6);
+  --glow:         0 0 20px rgba(217, 119, 87, 0.2);
 }
 
 /* ── Base ── */
@@ -107,7 +109,7 @@ body {
   }
 
   .neon-border {
-    border: 1px solid rgba(244, 63, 127, 0.30) !important;
+    border: 1px solid rgba(217, 119, 87, 0.30) !important;
     box-shadow: var(--glow);
   }
 
@@ -133,16 +135,16 @@ body {
   .input-base::placeholder { color: var(--text-3); }
   .input-base:focus {
     border-color: var(--pink);
-    box-shadow: 0 0 0 3px rgba(244, 63, 127, 0.12);
+    box-shadow: 0 0 0 3px rgba(217, 119, 87, 0.12);
   }
 
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl font-semibold text-white transition-all duration-200;
-    background: linear-gradient(135deg, #F43F7F, #C084FC) !important;
+    background: linear-gradient(135deg, #D97757, #F3AE8C) !important;
     color: #fff !important;
-    box-shadow: 0 4px 16px rgba(244, 63, 127, 0.28);
+    box-shadow: 0 4px 16px rgba(217, 119, 87, 0.28);
   }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(244, 63, 127, 0.38); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(217, 119, 87, 0.38); }
   .btn-primary:active { transform: translateY(0); }
   .btn-primary:disabled { opacity: 0.55; transform: none; }
 
@@ -170,14 +172,14 @@ body {
   }
   .nav-link:hover { background: var(--bg-3); color: var(--text-1); }
   .nav-link.active {
-    background: linear-gradient(135deg, rgba(244,63,127,0.10), rgba(192,132,252,0.06));
+    background: linear-gradient(135deg, rgba(217, 119, 87, 0.10), rgba(243, 174, 140, 0.06));
     border-left: 3px solid var(--pink);
     color: var(--pink);
     padding-left: calc(1rem - 3px);
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, #F43F7F, #C084FC);
+    background: linear-gradient(135deg, #D97757, #F3AE8C);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
