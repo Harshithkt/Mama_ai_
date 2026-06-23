@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd mama/frontend && npm install && npm run build",
+  "outputDirectory": "mama/frontend/dist",
+  "installCommand": "cd mama/frontend && npm install",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

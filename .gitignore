@@ -29,17 +29,11 @@ Thumbs.db
 # Models (large files)
 mama/backend/models/
 
-mama/frontend/src/firebase.js
+# mama/frontend/src/firebase.js (public config - must be tracked for Vercel builds)
 
 # Sensitive files
 serviceAccountKey.json
 backend/.env
 frontend/dist/
 
-backend/.env
-frontend/.env
-frontend/dist/assets/index-BkNeRuJq.js
- frontend/src/components/FloatingChatbot.jsx
-
-
- /Users/harshithkt/Desktop/Mama_ai/mama/backend/serviceAccountKey.json
+mama/frontend/src/components/FloatingChatbot.jsx
